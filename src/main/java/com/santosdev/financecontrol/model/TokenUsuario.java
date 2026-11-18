@@ -21,7 +21,7 @@ public class TokenUsuario {
     @Column(nullable = false)
     private TipoToken tipo;
 
-    @Column(nullable = false, length = 64, unique = true, columnDefinition = "char(64)")
+    @Column(nullable = false, length = 64, unique = true)
     private String tokenHash;
 
     @Column(nullable = false)

@@ -4,8 +4,6 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
-import org.hibernate.annotations.JdbcTypeCode;
-import org.hibernate.type.SqlTypes;
 
 import java.time.Instant;
 
@@ -18,8 +16,7 @@ public class FotoUsuario {
     @Column(name = "usuario_id")
     private Long usuarioId;
 
-    @JdbcTypeCode(SqlTypes.LONGVARBINARY)
-    @Column(nullable = false, columnDefinition = "mediumblob")
+    @Column(nullable = false)
     private byte[] dados;
 
     @Column(nullable = false)

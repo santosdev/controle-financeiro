@@ -25,12 +25,13 @@ public interface TransacaoRepository extends JpaRepository<Transacao, Long> {
     Optional<Transacao> buscarDoUsuario(@Param("id") Long id, @Param("usuarioId") Long usuarioId);
 
     // Parametros nulos sao ignorados, entao todos os filtros sao opcionais.
+    // O CAST informa o tipo ao PostgreSQL, que nao deduz o tipo de um parametro usado so em "IS NULL".
     @Query("""
             SELECT t FROM Transacao t JOIN FETCH t.categoria c
             WHERE t.usuario.id = :usuarioId
-              AND (:inicio IS NULL OR t.data >= :inicio)
-              AND (:fim IS NULL OR t.data <= :fim)
-              AND (:categoriaId IS NULL OR c.id = :categoriaId)
+              AND (CAST(:inicio AS LocalDate) IS NULL OR t.data >= :inicio)
+              AND (CAST(:fim AS LocalDate) IS NULL OR t.data <= :fim)
+              AND (CAST(:categoriaId AS Long) IS NULL OR c.id = :categoriaId)
               AND (:tipo IS NULL OR t.tipo = :tipo)
             ORDER BY t.data DESC, t.id DESC
             """)
@@ -46,8 +47,8 @@ public interface TransacaoRepository extends JpaRepository<Transacao, Long> {
             FROM Transacao t JOIN t.categoria c
             WHERE t.usuario.id = :usuarioId
               AND t.tipo = :tipo
-              AND (:inicio IS NULL OR t.data >= :inicio)
-              AND (:fim IS NULL OR t.data <= :fim)
+              AND (CAST(:inicio AS LocalDate) IS NULL OR t.data >= :inicio)
+              AND (CAST(:fim AS LocalDate) IS NULL OR t.data <= :fim)
             GROUP BY c.id, c.nome
             ORDER BY SUM(t.valor) DESC, c.nome ASC
             """)
@@ -61,8 +62,8 @@ public interface TransacaoRepository extends JpaRepository<Transacao, Long> {
             SELECT YEAR(t.data), MONTH(t.data), t.tipo, SUM(t.valor)
             FROM Transacao t
             WHERE t.usuario.id = :usuarioId
-              AND (:inicio IS NULL OR t.data >= :inicio)
-              AND (:fim IS NULL OR t.data <= :fim)
+              AND (CAST(:inicio AS LocalDate) IS NULL OR t.data >= :inicio)
+              AND (CAST(:fim AS LocalDate) IS NULL OR t.data <= :fim)
             GROUP BY YEAR(t.data), MONTH(t.data), t.tipo
             """)
     List<Object[]> totaisPorMes(@Param("usuarioId") Long usuarioId,
