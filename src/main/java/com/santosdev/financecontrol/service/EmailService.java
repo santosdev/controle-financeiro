@@ -11,9 +11,19 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.web.util.HtmlUtils;
 
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.time.Duration;
+import java.util.List;
+import java.util.stream.Collectors;
+
 /**
- * Envia os e-mails do sistema. Com SMTP configurado (SPRING_MAIL_HOST) o e-mail e enviado de verdade;
- * sem SMTP, o conteudo e o link sao apenas impressos no log, o que basta para desenvolver e testar.
+ * Envia os e-mails do sistema, nesta ordem de preferencia:
+ * 1. Resend (RESEND_API_KEY): API HTTPS, funciona em hospedagens que bloqueiam SMTP (ex.: Render gratuito);
+ * 2. SMTP (SPRING_MAIL_HOST), por exemplo o Gmail;
+ * 3. nenhum: o conteudo e o link sao apenas impressos no log, o que basta para desenvolver e testar.
  */
 @Service
 public class EmailService {
@@ -23,12 +33,23 @@ public class EmailService {
     private final ObjectProvider<JavaMailSender> mailSender;
     private final String remetente;
     private final String baseUrl;
+    private final String resendApiKey;
+    private final String resendUrl;
+    private final HttpClient http = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(8)).build();
+
+    /** Remetente de testes do Resend: funciona sem dominio proprio, mas so entrega para o e-mail da conta Resend. */
+    static final String REMETENTE_TESTE_RESEND = "FinanceControl <onboarding@resend.dev>";
 
     public EmailService(ObjectProvider<JavaMailSender> mailSender,
                         @Value("${app.mail.from}") String remetente,
-                        @Value("${app.base-url}") String baseUrl) {
+                        @Value("${app.base-url}") String baseUrl,
+                        @Value("${app.mail.resend-api-key:}") String resendApiKey,
+                        @Value("${app.mail.resend-url:https://api.resend.com/emails}") String resendUrl) {
         this.mailSender = mailSender;
-        this.remetente = remetente;
+        this.resendUrl = resendUrl;
+        this.resendApiKey = resendApiKey == null ? "" : resendApiKey.trim();
+        boolean remetentePadrao = remetente.contains("@financecontrol.local");
+        this.remetente = !this.resendApiKey.isEmpty() && remetentePadrao ? REMETENTE_TESTE_RESEND : remetente;
         this.baseUrl = baseUrl.endsWith("/") ? baseUrl.substring(0, baseUrl.length() - 1) : baseUrl;
     }
 
@@ -55,6 +76,10 @@ public class EmailService {
     }
 
     private void enviar(String para, String assunto, String html, String link) {
+        if (!resendApiKey.isEmpty()) {
+            enviarPeloResend(para, assunto, html, link);
+            return;
+        }
         JavaMailSender sender = mailSender.getIfAvailable();
         if (sender == null) {
             log.warn("[E-MAIL SIMULADO - SMTP não configurado] Para: {} | Assunto: {} | Link: {}", para, assunto, link);
@@ -72,6 +97,64 @@ public class EmailService {
         } catch (Exception e) {
             log.error("Falha ao enviar e-mail '{}' para {}: {}", assunto, para, e.getMessage());
         }
+    }
+
+    private void enviarPeloResend(String para, String assunto, String html, String link) {
+        try {
+            HttpRequest req = HttpRequest.newBuilder(URI.create(resendUrl))
+                    .timeout(Duration.ofSeconds(10))
+                    .header("Authorization", "Bearer " + resendApiKey)
+                    .header("Content-Type", "application/json")
+                    .POST(HttpRequest.BodyPublishers.ofString(corpoResend(remetente, para, assunto, html, "Abra este link: " + link)))
+                    .build();
+            HttpResponse<String> resp = http.send(req, HttpResponse.BodyHandlers.ofString());
+            if (resp.statusCode() / 100 == 2) {
+                log.info("E-mail '{}' enviado para {} (Resend)", assunto, para);
+            } else {
+                log.error("Resend recusou o e-mail '{}' para {}: HTTP {} {}", assunto, para, resp.statusCode(), resp.body());
+            }
+        } catch (Exception e) {
+            if (e instanceof InterruptedException) {
+                Thread.currentThread().interrupt();
+            }
+            log.error("Falha ao enviar e-mail '{}' para {} pelo Resend: {}", assunto, para, e.getMessage());
+        }
+    }
+
+    /** Monta o JSON da API do Resend. */
+    static String corpoResend(String de, String para, String assunto, String html, String texto) {
+        return "{" + List.of(
+                        campo("from", de),
+                        "\"to\":[" + json(para) + "]",
+                        campo("subject", assunto),
+                        campo("html", html),
+                        campo("text", texto))
+                .stream().collect(Collectors.joining(",")) + "}";
+    }
+
+    private static String campo(String nome, String valor) {
+        return json(nome) + ":" + json(valor);
+    }
+
+    static String json(String valor) {
+        StringBuilder sb = new StringBuilder("\"");
+        for (char c : valor.toCharArray()) {
+            switch (c) {
+                case '"' -> sb.append("\\\"");
+                case '\\' -> sb.append("\\\\");
+                case '\n' -> sb.append("\\n");
+                case '\r' -> sb.append("\\r");
+                case '\t' -> sb.append("\\t");
+                default -> {
+                    if (c < 0x20) {
+                        sb.append(String.format("\\u%04x", (int) c));
+                    } else {
+                        sb.append(c);
+                    }
+                }
+            }
+        }
+        return sb.append('"').toString();
     }
 
     private String modelo(String nome, String titulo, String texto, String botao, String link, String rodape) {

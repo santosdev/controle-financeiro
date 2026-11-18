@@ -122,19 +122,20 @@ O banco `financecontrol_auth` e as tabelas são criados automaticamente pelo Fly
 | `DB_USER` / `DB_NAME` | Usuário e nome do banco (padrão: `postgres` e `financecontrol`) | Não |
 | `DB_URL` | URL JDBC completa do banco (produção). Quando definida, ignora `DB_NAME` | Não |
 | `PORT` | Porta do servidor (a hospedagem define; padrão `8080`) | Não |
-| `SPRING_MAIL_HOST`, `SPRING_MAIL_PORT`, `SPRING_MAIL_USERNAME`, `SPRING_MAIL_PASSWORD` | Envio real de e-mails | Não |
+| `RESEND_API_KEY` | Envio de e-mails pela API do Resend (tem prioridade sobre o SMTP; ideal em hospedagens que bloqueiam SMTP) | Não |
+| `SPRING_MAIL_HOST`, `SPRING_MAIL_PORT`, `SPRING_MAIL_USERNAME`, `SPRING_MAIL_PASSWORD` | Envio real de e-mails por SMTP | Não |
 | `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` | Ativa o botão "Continuar com o Google" | Não |
 | `APP_BASE_URL` | Endereço público, usado nos links dos e-mails | Não |
 | `COOKIE_SECURE` | `true` em produção (HTTPS) | Não |
 
-O passo a passo para configurar o Gmail e o login com Google está em [docs/LOGIN.md](docs/LOGIN.md).
+O passo a passo para configurar o Gmail e o login com Google está em [docs/LOGIN.md](docs/LOGIN.md). Para publicar na internet (Render + Neon + Resend), veja [docs/DEPLOY.md](docs/DEPLOY.md).
 
 ## ✅ Testes
 
 Os testes unitários cobrem as regras de negócio e **não precisam de PostgreSQL nem de servidor de e-mail**:
 
 ```bash
-./mvnw test "-Dtest=UsuarioTest,TokenUsuarioTest,TokenServiceTest,AuthServiceTest,TransacaoServiceTest,DashboardServiceTest,ValidacaoDosFormulariosTest,ImagemDePerfilTest,PerfilServiceTest,FotoDoGoogleTest"
+./mvnw test "-Dtest=UsuarioTest,TokenUsuarioTest,TokenServiceTest,AuthServiceTest,TransacaoServiceTest,DashboardServiceTest,ValidacaoDosFormulariosTest,ImagemDePerfilTest,PerfilServiceTest,FotoDoGoogleTest,EmailServiceTest"
 ```
 
 | Área | O que é verificado |
@@ -148,6 +149,7 @@ Os testes unitários cobrem as regras de negócio e **não precisam de PostgreSQ
 | Dashboard | totais e saldo, saldo negativo, meses sem movimento, limite de 24 meses |
 | Perfil | apelido, troca de senha (e bloqueio ao errar a atual), exclusão de conta na ordem certa, foto do Google |
 | Foto | só imagem real, recorte quadrado 256x256, fundo branco em PNG transparente, limite de 2 MB, SVG e arquivos falsos recusados |
+| E-mail | envio pela API do Resend (cabeçalho, remetente e JSON escapado), SMTP ignorado quando há chave do Resend |
 | Formulários | e-mail, senha, valor, casas decimais e tamanhos de campo |
 
 O teste `FinanceControlApplicationTests` sobe a aplicação inteira e, por isso, precisa do PostgreSQL configurado (`DB_PASSWORD`).
