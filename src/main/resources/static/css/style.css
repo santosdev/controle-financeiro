@@ -1,0 +1,197 @@
+:root {
+    --fundo: #f4f6fb;
+    --superficie: #ffffff;
+    --texto: #1f2937;
+    --texto-suave: #6b7280;
+    --borda: #e5e7eb;
+    --primaria: #4f46e5;
+    --primaria-escura: #4338ca;
+    --receita: #059669;
+    --receita-fundo: #d1fae5;
+    --despesa: #dc2626;
+    --despesa-fundo: #fee2e2;
+    --raio: 10px;
+    --sombra: 0 1px 3px rgba(0, 0, 0, .08), 0 1px 2px rgba(0, 0, 0, .06);
+}
+
+* { box-sizing: border-box; }
+
+body {
+    margin: 0;
+    font-family: "Segoe UI", system-ui, -apple-system, Roboto, sans-serif;
+    background: var(--fundo);
+    color: var(--texto);
+    line-height: 1.45;
+}
+
+/* ---------- Topo ---------- */
+.topo {
+    background: var(--superficie);
+    border-bottom: 1px solid var(--borda);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+.topo__conteudo {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 0 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+.logo { margin: 0; font-size: 1.35rem; padding: 14px 0; }
+.logo span { color: var(--primaria); }
+
+.abas { display: flex; gap: 4px; }
+.aba {
+    background: none;
+    border: none;
+    padding: 18px 14px 14px;
+    font-size: .95rem;
+    font-weight: 600;
+    color: var(--texto-suave);
+    cursor: pointer;
+    border-bottom: 3px solid transparent;
+}
+.aba:hover { color: var(--texto); }
+.aba.ativa { color: var(--primaria); border-bottom-color: var(--primaria); }
+
+/* ---------- Página ---------- */
+.pagina { max-width: 1100px; margin: 0 auto; padding: 24px 20px 60px; }
+.painel[hidden] { display: none; }
+
+/* ---------- Resumo ---------- */
+.resumo { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+.cartao {
+    background: var(--superficie);
+    border-radius: var(--raio);
+    padding: 18px 20px;
+    box-shadow: var(--sombra);
+    border-left: 5px solid var(--borda);
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+.cartao__titulo { font-size: .85rem; color: var(--texto-suave); text-transform: uppercase; letter-spacing: .04em; }
+.cartao strong { font-size: 1.5rem; }
+.cartao--receita { border-left-color: var(--receita); }
+.cartao--receita strong { color: var(--receita); }
+.cartao--despesa { border-left-color: var(--despesa); }
+.cartao--despesa strong { color: var(--despesa); }
+.cartao--saldo { border-left-color: var(--primaria); }
+.cartao--saldo strong.negativo { color: var(--despesa); }
+
+.dica { margin: 8px 2px 18px; font-size: .8rem; color: var(--texto-suave); }
+
+/* ---------- Filtros ---------- */
+.filtros {
+    background: var(--superficie);
+    border-radius: var(--raio);
+    box-shadow: var(--sombra);
+    padding: 16px 20px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    align-items: flex-end;
+    margin-bottom: 24px;
+}
+.filtros label { display: flex; flex-direction: column; gap: 4px; font-size: .8rem; color: var(--texto-suave); font-weight: 600; }
+
+/* ---------- Campos ---------- */
+input, select {
+    font: inherit;
+    color: var(--texto);
+    padding: 9px 11px;
+    border: 1px solid var(--borda);
+    border-radius: 8px;
+    background: #fff;
+    min-width: 0;
+}
+input:focus, select:focus { outline: 2px solid var(--primaria); outline-offset: -1px; border-color: var(--primaria); }
+
+/* ---------- Botões ---------- */
+.botao {
+    font: inherit;
+    font-weight: 600;
+    padding: 9px 16px;
+    border: none;
+    border-radius: 8px;
+    background: var(--primaria);
+    color: #fff;
+    cursor: pointer;
+    transition: background .15s;
+}
+.botao:hover { background: var(--primaria-escura); }
+.botao--neutro { background: #e5e7eb; color: var(--texto); }
+.botao--neutro:hover { background: #d1d5db; }
+.botao--receita { background: var(--receita); }
+.botao--receita:hover { background: #047857; }
+.botao--despesa { background: var(--despesa); }
+.botao--despesa:hover { background: #b91c1c; }
+.botao--mini { padding: 5px 10px; font-size: .8rem; }
+
+/* ---------- Barra de ações ---------- */
+.barra-acoes { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 12px; }
+.barra-acoes h2 { margin: 0; font-size: 1.2rem; }
+.barra-acoes__botoes { display: flex; gap: 8px; }
+
+/* ---------- Tabela ---------- */
+.tabela-wrap { background: var(--superficie); border-radius: var(--raio); box-shadow: var(--sombra); overflow-x: auto; }
+.tabela { width: 100%; border-collapse: collapse; }
+.tabela th, .tabela td { padding: 12px 16px; text-align: left; border-bottom: 1px solid var(--borda); white-space: nowrap; }
+.tabela th { font-size: .78rem; text-transform: uppercase; letter-spacing: .04em; color: var(--texto-suave); background: #fafafa; }
+.tabela tbody tr:last-child td { border-bottom: none; }
+.tabela tbody tr:hover { background: #f9fafb; }
+.tabela .direita { text-align: right; }
+.tabela td.valor { font-weight: 600; }
+.valor--receita { color: var(--receita); }
+.valor--despesa { color: var(--despesa); }
+.acoes-linha { display: flex; gap: 6px; justify-content: flex-end; }
+
+.selo { display: inline-block; padding: 2px 10px; border-radius: 999px; font-size: .75rem; font-weight: 700; }
+.selo--receita { background: var(--receita-fundo); color: var(--receita); }
+.selo--despesa { background: var(--despesa-fundo); color: var(--despesa); }
+
+.vazio { text-align: center; color: var(--texto-suave); padding: 30px 10px; margin: 0; }
+.vazio[hidden] { display: none; }
+
+/* ---------- Modal ---------- */
+.modal { border: none; border-radius: 14px; padding: 0; width: min(460px, 92vw); box-shadow: 0 20px 50px rgba(0, 0, 0, .25); }
+.modal::backdrop { background: rgba(17, 24, 39, .5); }
+.modal form { padding: 24px; display: flex; flex-direction: column; gap: 14px; }
+.modal h3 { margin: 0; font-size: 1.15rem; }
+.modal label { display: flex; flex-direction: column; gap: 5px; font-size: .85rem; font-weight: 600; color: var(--texto-suave); }
+.modal input, .modal select { width: 100%; }
+.modal--pequeno { width: min(380px, 92vw); }
+.modal--pequeno p { margin: 0; }
+.linha { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.modal__acoes { display: flex; justify-content: flex-end; gap: 8px; margin-top: 6px; }
+.erro-form { margin: 0; padding: 10px 12px; background: var(--despesa-fundo); color: var(--despesa); border-radius: 8px; font-size: .85rem; }
+.erro-form[hidden] { display: none; }
+
+/* ---------- Aviso (toast) ---------- */
+.aviso {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #111827;
+    color: #fff;
+    padding: 12px 20px;
+    border-radius: 10px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, .3);
+    font-size: .9rem;
+    z-index: 50;
+}
+.aviso[hidden] { display: none; }
+.aviso--erro { background: var(--despesa); }
+
+/* ---------- Responsivo ---------- */
+@media (max-width: 720px) {
+    .resumo { grid-template-columns: 1fr; }
+    .filtros label { flex: 1 1 140px; }
+    .linha { grid-template-columns: 1fr; }
+}
