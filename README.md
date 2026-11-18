@@ -120,6 +120,8 @@ O banco `financecontrol_auth` e as tabelas são criados automaticamente pelo Fly
 |---|---|---|
 | `DB_PASSWORD` | Senha do MySQL | Sim |
 | `DB_USER` / `DB_NAME` | Usuário e nome do banco (padrão: `root` e `financecontrol_auth`) | Não |
+| `DB_URL` | URL JDBC completa do banco (produção). Quando definida, ignora `DB_NAME` | Não |
+| `PORT` | Porta do servidor (a hospedagem define; padrão `8080`) | Não |
 | `SPRING_MAIL_HOST`, `SPRING_MAIL_PORT`, `SPRING_MAIL_USERNAME`, `SPRING_MAIL_PASSWORD` | Envio real de e-mails | Não |
 | `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` | Ativa o botão "Continuar com o Google" | Não |
 | `APP_BASE_URL` | Endereço público, usado nos links dos e-mails | Não |
