@@ -1,6 +1,6 @@
 # 💰 FinanceControl — Gestão Financeira Web
 
-Sistema web de controle financeiro pessoal feito com **Java 21, Spring Boot e MySQL**. Cada pessoa cria a sua conta, registra receitas e despesas, organiza por categorias e acompanha o saldo e a evolução mensal em um dashboard.
+Sistema web de controle financeiro pessoal feito com **Java 21, Spring Boot e PostgreSQL**. Cada pessoa cria a sua conta, registra receitas e despesas, organiza por categorias e acompanha o saldo e a evolução mensal em um dashboard.
 
 ## 🎯 Objetivo
 
@@ -34,7 +34,7 @@ Aplicação completa de portfólio, do banco de dados à interface: API REST, au
 | Spring Boot 4 | Backend e API REST |
 | Spring Security (+ OAuth2 Client) | Login, sessão, CSRF e Google |
 | Spring Data JPA / Hibernate | Persistência |
-| MySQL | Banco de dados |
+| PostgreSQL | Banco de dados |
 | Flyway | Versionamento do banco (migrations) |
 | Spring Mail | Envio de e-mails (SMTP) |
 | HTML5, CSS3 e JavaScript | Interface, sem frameworks |
@@ -87,22 +87,22 @@ Todas as rotas, exceto as de `/api/auth` e as páginas, exigem login.
 
 ## 🚀 Como rodar
 
-**Pré-requisitos:** JDK 21, Maven (ou o `mvnw` do projeto) e MySQL 8 em execução.
+**Pré-requisitos:** JDK 21, Maven (ou o `mvnw` do projeto) e PostgreSQL 14+ em execução (crie o banco com `createdb financecontrol`).
 
 1. Clone o repositório e entre na pasta:
    ```bash
    git clone https://github.com/santosdev/controle-financeiro.git
    cd controle-financeiro
    ```
-2. Informe a senha do MySQL por variável de ambiente (ela nunca fica no código).
+2. Informe a senha do PostgreSQL por variável de ambiente (ela nunca fica no código).
 
    Windows (PowerShell):
    ```powershell
-   $env:DB_PASSWORD = "sua_senha_do_mysql"
+   $env:DB_PASSWORD = "sua_senha_do_postgres"
    ```
    Linux/macOS:
    ```bash
-   export DB_PASSWORD="sua_senha_do_mysql"
+   export DB_PASSWORD="sua_senha_do_postgres"
    ```
 3. Inicie o sistema:
    ```bash
@@ -118,8 +118,8 @@ O banco `financecontrol_auth` e as tabelas são criados automaticamente pelo Fly
 
 | Variável | Para que serve | Obrigatória |
 |---|---|---|
-| `DB_PASSWORD` | Senha do MySQL | Sim |
-| `DB_USER` / `DB_NAME` | Usuário e nome do banco (padrão: `root` e `financecontrol_auth`) | Não |
+| `DB_PASSWORD` | Senha do PostgreSQL | Sim |
+| `DB_USER` / `DB_NAME` | Usuário e nome do banco (padrão: `postgres` e `financecontrol`) | Não |
 | `DB_URL` | URL JDBC completa do banco (produção). Quando definida, ignora `DB_NAME` | Não |
 | `PORT` | Porta do servidor (a hospedagem define; padrão `8080`) | Não |
 | `SPRING_MAIL_HOST`, `SPRING_MAIL_PORT`, `SPRING_MAIL_USERNAME`, `SPRING_MAIL_PASSWORD` | Envio real de e-mails | Não |
@@ -131,7 +131,7 @@ O passo a passo para configurar o Gmail e o login com Google está em [docs/LOGI
 
 ## ✅ Testes
 
-Os testes unitários cobrem as regras de negócio e **não precisam de MySQL nem de servidor de e-mail**:
+Os testes unitários cobrem as regras de negócio e **não precisam de PostgreSQL nem de servidor de e-mail**:
 
 ```bash
 ./mvnw test "-Dtest=UsuarioTest,TokenUsuarioTest,TokenServiceTest,AuthServiceTest,TransacaoServiceTest,DashboardServiceTest,ValidacaoDosFormulariosTest,ImagemDePerfilTest,PerfilServiceTest,FotoDoGoogleTest"
@@ -150,13 +150,13 @@ Os testes unitários cobrem as regras de negócio e **não precisam de MySQL nem
 | Foto | só imagem real, recorte quadrado 256x256, fundo branco em PNG transparente, limite de 2 MB, SVG e arquivos falsos recusados |
 | Formulários | e-mail, senha, valor, casas decimais e tamanhos de campo |
 
-O teste `FinanceControlApplicationTests` sobe a aplicação inteira e, por isso, precisa do MySQL configurado (`DB_PASSWORD`).
+O teste `FinanceControlApplicationTests` sobe a aplicação inteira e, por isso, precisa do PostgreSQL configurado (`DB_PASSWORD`).
 
 ## 🗺️ Etapas de desenvolvimento
 
 1. Configuração do ambiente.
 2. Criação do projeto Java.
-3. Banco de dados MySQL.
+3. Banco de dados PostgreSQL.
 4. Backend (API REST).
 5. Interface web.
 6. Integração entre frontend, backend e banco.
