@@ -14,6 +14,7 @@ import com.santosdev.financecontrol.security.SessaoUsuario;
 import com.santosdev.financecontrol.security.UsuarioLogado;
 import com.santosdev.financecontrol.service.AuthService;
 import com.santosdev.financecontrol.service.PerfilService;
+import com.santosdev.financecontrol.service.VisitanteService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
@@ -38,9 +39,12 @@ public class AuthController {
     private final AuthenticationManager gerenteDeAutenticacao;
     private final SessaoUsuario sessao;
     private final ObjectProvider<ClientRegistrationRepository> clientesOAuth;
+    private final VisitanteService visitantes;
 
     public AuthController(AuthService auth, PerfilService perfil, AuthenticationManager gerenteDeAutenticacao,
-                          SessaoUsuario sessao, ObjectProvider<ClientRegistrationRepository> clientesOAuth) {
+                          SessaoUsuario sessao, ObjectProvider<ClientRegistrationRepository> clientesOAuth,
+                          VisitanteService visitantes) {
+        this.visitantes = visitantes;
         this.auth = auth;
         this.perfil = perfil;
         this.gerenteDeAutenticacao = gerenteDeAutenticacao;
@@ -48,10 +52,22 @@ public class AuthController {
         this.clientesOAuth = clientesOAuth;
     }
 
-    /** O frontend usa para decidir se mostra o botao "Continuar com o Google". */
+    /** O frontend usa para decidir se mostra os botoes "Continuar com o Google" e "Entrar como visitante". */
     @GetMapping("/config")
     public Map<String, Boolean> configuracao() {
-        return Map.of("google", clientesOAuth.getIfAvailable() != null);
+        return Map.of("google", clientesOAuth.getIfAvailable() != null,
+                "visitante", visitantes.isHabilitado());
+    }
+
+    /** Cria uma conta temporaria (sem e-mail e sem senha) e ja entra com ela. */
+    @PostMapping("/visitante")
+    @ResponseStatus(HttpStatus.CREATED)
+    public UsuarioResponse entrarComoVisitante(HttpServletRequest request, HttpServletResponse response) {
+        Usuario visitante = visitantes.criar(request.getRemoteAddr());
+        UsuarioLogado logado = new UsuarioLogado(visitante);
+        sessao.iniciar(UsernamePasswordAuthenticationToken.authenticated(logado, null, logado.getAuthorities()),
+                request, response);
+        return perfil.resposta(visitante);
     }
 
     @PostMapping("/cadastro")

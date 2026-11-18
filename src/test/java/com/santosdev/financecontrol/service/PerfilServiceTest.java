@@ -260,6 +260,44 @@ class PerfilServiceTest {
     }
 
     @Test
+    void visitanteConfirmaAExclusaoDigitandoExcluir() {
+        Usuario visitante = contaComId("Visitante", "visitante-1@visitante.invalid", null, ProvedorLogin.VISITANTE);
+        when(usuarios.findById(ID)).thenReturn(Optional.of(visitante));
+
+        service.excluirConta(new ExcluirContaRequest(" excluir "));
+
+        verify(usuarios).deleteById(ID);
+    }
+
+    @Test
+    void visitanteQueNaoDigitaExcluirNaoApagaNada() {
+        Usuario visitante = contaComId("Visitante", "visitante-1@visitante.invalid", null, ProvedorLogin.VISITANTE);
+        when(usuarios.findById(ID)).thenReturn(Optional.of(visitante));
+
+        assertThatThrownBy(() -> service.excluirConta(new ExcluirContaRequest("visitante-1@visitante.invalid")))
+                .isInstanceOfSatisfying(ApiException.class, e -> assertThat(e.getCodigo()).isEqualTo("CONFIRMACAO_INCORRETA"));
+        verify(usuarios, never()).deleteById(any());
+    }
+
+    @Test
+    void visitanteNaoTemSenhaParaAlterar() {
+        Usuario visitante = contaComId("Visitante", "visitante-1@visitante.invalid", null, ProvedorLogin.VISITANTE);
+        when(usuarios.findById(ID)).thenReturn(Optional.of(visitante));
+
+        assertThatThrownBy(() -> service.alterarSenha(new AlterarSenhaRequest("x", "NovaSenha1")))
+                .isInstanceOfSatisfying(ApiException.class, e -> assertThat(e.getCodigo()).isEqualTo("VISITANTE"));
+        verifyNoInteractions(encoder);
+    }
+
+    @Test
+    void respostaIndicaContaDeVisitante() {
+        Usuario visitante = contaComId("Visitante", "visitante-1@visitante.invalid", null, ProvedorLogin.VISITANTE);
+
+        assertThat(service.resposta(visitante).visitante()).isTrue();
+        assertThat(service.resposta(conta).visitante()).isFalse();
+    }
+
+    @Test
     void contaDoGoogleConfirmaDigitandoOEmail() {
         Usuario google = contaComId("Ana", "ana@gmail.com", null, ProvedorLogin.GOOGLE);
         when(usuarios.findById(ID)).thenReturn(Optional.of(google));

@@ -1,5 +1,6 @@
 package com.santosdev.financecontrol.security;
 
+import com.santosdev.financecontrol.service.VisitanteService;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.context.annotation.Bean;
@@ -48,7 +49,8 @@ public class SecurityConfig {
     @Bean
     SecurityFilterChain filtros(HttpSecurity http,
                                 ObjectProvider<ClientRegistrationRepository> clientesOAuth,
-                                GoogleLoginSuccessHandler loginGoogle) throws Exception {
+                                GoogleLoginSuccessHandler loginGoogle,
+                                VisitanteService visitantes) throws Exception {
         http
                 // CSRF: o token vai num cookie legivel pelo JavaScript e volta no cabecalho X-XSRF-TOKEN.
                 .csrf(csrf -> csrf
@@ -69,6 +71,12 @@ public class SecurityConfig {
 
                 .logout(logout -> logout
                         .logoutUrl("/api/auth/logout")
+                        // Visitante nao tem senha para voltar depois: ao sair, a conta temporaria e apagada.
+                        .addLogoutHandler((req, res, auth) -> {
+                            if (auth != null && auth.getPrincipal() instanceof UsuarioLogado u && u.isVisitante()) {
+                                visitantes.apagar(u.getId());
+                            }
+                        })
                         .deleteCookies("FINANCECONTROL_SESSION")
                         .logoutSuccessHandler((req, res, auth) -> res.setStatus(HttpServletResponse.SC_NO_CONTENT)))
 

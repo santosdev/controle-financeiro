@@ -24,6 +24,9 @@ import java.util.Optional;
 @Service
 public class PerfilService {
 
+    /** O visitante nao tem senha nem e-mail real: confirma a exclusao digitando esta palavra. */
+    public static final String PALAVRA_DE_CONFIRMACAO = "EXCLUIR";
+
     private final UsuarioRepository usuarios;
     private final FotoUsuarioRepository fotos;
     private final TransacaoRepository transacoes;
@@ -103,6 +106,10 @@ public class PerfilService {
     @Transactional(noRollbackFor = ApiException.class)
     public void alterarSenha(AlterarSenhaRequest req) {
         Usuario usuario = atual();
+        if (usuario.isVisitante()) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "VISITANTE",
+                    "Contas de visitante não têm senha. Crie uma conta para guardar os seus dados.");
+        }
         if (usuario.getSenhaHash() == null) {
             throw new ApiException(HttpStatus.BAD_REQUEST, "SEM_SENHA",
                     "Sua conta entra pelo Google e não tem senha. Use \"Esqueci minha senha\" na tela de login para criar uma.");
@@ -120,13 +127,23 @@ public class PerfilService {
     @Transactional(noRollbackFor = ApiException.class)
     public void excluirConta(ExcluirContaRequest req) {
         Usuario usuario = atual();
-        if (usuario.getSenhaHash() != null) {
+        if (usuario.isVisitante()) {
+            if (!PALAVRA_DE_CONFIRMACAO.equalsIgnoreCase(req.confirmacao().trim())) {
+                throw new ApiException(HttpStatus.BAD_REQUEST, "CONFIRMACAO_INCORRETA",
+                        "Digite " + PALAVRA_DE_CONFIRMACAO + " para confirmar.");
+            }
+        } else if (usuario.getSenhaHash() != null) {
             conferirSenhaOuFalhar(usuario, req.confirmacao(), "CONFIRMACAO_INCORRETA", "A senha informada está incorreta.");
         } else if (!AuthService.normalizar(req.confirmacao()).equals(usuario.getEmail())) {
             throw new ApiException(HttpStatus.BAD_REQUEST, "CONFIRMACAO_INCORRETA",
                     "Digite o e-mail da conta exatamente como aparece em \"E-mail\".");
         }
-        Long id = usuario.getId();
+        apagarTudoDoUsuario(usuario.getId());
+    }
+
+    /** Usado tambem para as contas de visitante. Tokens e foto saem por cascata no banco. */
+    @Transactional
+    public void apagarTudoDoUsuario(Long id) {
         transacoes.apagarDoUsuario(id);
         categorias.apagarDoUsuario(id);
         usuarios.deleteById(id);

@@ -307,7 +307,7 @@ input:focus, select:focus { outline: 2px solid var(--primaria); outline-offset: 
 .cartao-perfil--perigo { border: 1px solid var(--despesa); }
 .cartao-perfil--perigo h3 { color: var(--despesa); }
 #campos-senha { display: flex; flex-direction: column; gap: 12px; }
-#campos-senha[hidden], #senha-google[hidden] { display: none; }
+#campos-senha[hidden], #senha-google[hidden], .cartao-perfil[hidden], .faixa-visitante[hidden] { display: none; }
 .modal__texto { margin: 0; font-size: .92rem; }
 
 /* ---------- Botões ---------- */
@@ -518,3 +518,7 @@ input:focus, select:focus { outline: 2px solid var(--primaria); outline-offset: 
     .aba { padding: 12px 10px 10px; font-size: .85rem; }
     .g-colunas { grid-template-columns: 44px 1fr; }
 }
+
+/* Faixa do modo visitante (abaixo do topo) */
+.faixa-visitante { background: var(--neutro); color: var(--texto); font-size: .85rem; text-align: center; padding: 8px 16px; line-height: 1.5; }
+.faixa-visitante button { background: none; border: 0; padding: 0; margin-left: 6px; font: inherit; font-weight: 600; color: var(--primaria-texto); text-decoration: underline; cursor: pointer; }

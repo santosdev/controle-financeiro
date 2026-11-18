@@ -88,6 +88,8 @@
 }
 .botao-google:hover { background: var(--linha-hover); }
 .botao-google svg { width: 20px; height: 20px; }
+button.botao-google { cursor: pointer; font-family: inherit; }
+.visitante-nota { margin: 8px 0 0; font-size: .8rem; color: var(--texto-suave); text-align: center; }
 
 .divisor { display: flex; align-items: center; gap: 12px; color: var(--texto-suave); font-size: .8rem; margin: 20px 0; }
 .divisor::before, .divisor::after { content: ""; flex: 1; border-top: 1px solid var(--borda); }

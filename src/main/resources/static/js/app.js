@@ -291,6 +291,15 @@ $("limpar-filtros").addEventListener("click", () => {
 
 /* ---------------- Inicialização ---------------- */
 
+// Visitante que quer criar a conta de verdade: sai (a conta temporária é apagada) e vai para o cadastro.
+$("faixa-criar-conta").addEventListener("click", async () => {
+    try {
+        await API.sair();
+    } finally {
+        window.location.href = "/cadastro.html";
+    }
+});
+
 $("botao-sair").addEventListener("click", async () => {
     try {
         await API.sair();

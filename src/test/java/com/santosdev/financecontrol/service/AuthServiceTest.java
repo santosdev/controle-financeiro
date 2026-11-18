@@ -216,6 +216,17 @@ class AuthServiceTest {
     }
 
     @Test
+    void contaDeVisitanteNaoRecebeEmailDeRedefinicao() {
+        when(usuarios.findByEmail("visitante-1@visitante.invalid"))
+                .thenReturn(Optional.of(usuario(true, null, ProvedorLogin.VISITANTE)));
+
+        service.solicitarRedefinicaoDeSenha("visitante-1@visitante.invalid");
+
+        verifyNoInteractions(emails);
+        verify(tokens, never()).criar(any(), any(), any());
+    }
+
+    @Test
     void solicitarRedefinicaoEnviaEmailComLinkValidoPorUmaHora() {
         when(usuarios.findByEmail("ana@email.com")).thenReturn(Optional.of(usuario(true, "HASH", ProvedorLogin.LOCAL)));
         when(tokens.gerouRecentemente(any(), eq(TipoToken.REDEFINICAO_SENHA), any())).thenReturn(false);

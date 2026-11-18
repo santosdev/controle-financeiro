@@ -29,14 +29,14 @@
 
     // Deixa o botão "ocupado" enquanto a requisição roda (evita cliques repetidos).
     async function comBotaoOcupado(botao, textoOcupado, acao) {
-        const textoOriginal = botao.textContent;
+        const conteudoOriginal = Array.from(botao.childNodes, (no) => no.cloneNode(true)); // preserva ícones
         botao.disabled = true;
         botao.textContent = textoOcupado;
         try {
             return await acao();
         } finally {
             botao.disabled = false;
-            botao.textContent = textoOriginal;
+            botao.replaceChildren(...conteudoOriginal);
         }
     }
 
@@ -72,13 +72,17 @@
         });
     }
 
-    // Mostra "Continuar com o Google" só se o servidor tiver as credenciais configuradas.
+    // Mostra "Continuar com o Google" só se o servidor tiver as credenciais configuradas
+    // e "Entrar como visitante" só se o acesso de visitante estiver ligado (só existe na tela de login).
     async function prepararGoogle() {
         try {
             const cfg = await API.configuracao();
             if (cfg.google) {
                 $("botao-google").hidden = false;
                 $("divisor").hidden = false;
+            }
+            if (cfg.visitante && $("bloco-visitante")) {
+                $("bloco-visitante").hidden = false;
             }
         } catch (e) {
             // sem Google: tudo bem, o login por e-mail continua funcionando
@@ -109,6 +113,16 @@
         irParaSistemaSeLogado();
         prepararGoogle();
         ligarVerSenha();
+
+        $("botao-visitante").addEventListener("click", async () => {
+            limparMensagem();
+            try {
+                await comBotaoOcupado($("botao-visitante"), "Preparando a sua conta…", () => API.entrarComoVisitante());
+                window.location.href = "/";
+            } catch (e) {
+                mostrarMensagem(e.message);
+            }
+        });
 
         $("form-login").addEventListener("submit", async (evento) => {
             evento.preventDefault();

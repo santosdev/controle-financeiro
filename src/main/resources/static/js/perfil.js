@@ -40,12 +40,20 @@ const Perfil = (() => {
         $("foto-remover").hidden = !novo.fotoVersao;
         $("senha-google").hidden = novo.temSenha;
         $("campos-senha").hidden = !novo.temSenha;
+
+        // Visitante: sem e-mail real e sem senha; a faixa no topo lembra que a conta é temporária.
+        if (novo.visitante) {
+            $("menu-email").textContent = "Conta de visitante";
+            $("menu-email").title = "";
+            $("form-senha").hidden = true;
+            $("faixa-visitante").hidden = false;
+        }
     }
 
     function preencherFormulario() {
         $("perfil-apelido").value = usuario.apelido || "";
         $("perfil-nome").value = usuario.nome;
-        $("perfil-email").value = usuario.email;
+        $("perfil-email").value = usuario.visitante ? "Conta de visitante (sem e-mail)" : usuario.email;
     }
 
     function esconderErro(id) {
@@ -217,8 +225,9 @@ const Perfil = (() => {
         const modal = $("modal-excluir-conta");
 
         $("abrir-excluir-conta").addEventListener("click", () => {
-            // Quem tem senha confirma com a senha; quem só entra pelo Google, digitando o e-mail.
-            $("excluir-conta-rotulo").textContent = usuario.temSenha ? "Digite sua senha para confirmar" : "Digite seu e-mail para confirmar";
+            // Quem tem senha confirma com a senha; quem só entra pelo Google, digitando o e-mail; o visitante, digitando EXCLUIR.
+            $("excluir-conta-rotulo").textContent = usuario.visitante ? "Digite EXCLUIR para confirmar"
+                : usuario.temSenha ? "Digite sua senha para confirmar" : "Digite seu e-mail para confirmar";
             $("excluir-conta-confirmacao").type = usuario.temSenha ? "password" : "text";
             $("excluir-conta-confirmacao").value = "";
             esconderErro("erro-excluir-conta");

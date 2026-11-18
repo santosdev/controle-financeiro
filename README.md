@@ -18,6 +18,7 @@ Aplicação completa de portfólio, do banco de dados à interface: API REST, au
 **Conta e segurança**
 - Cadastro com **confirmação por e-mail**.
 - Login com e-mail e senha, ou **"Continuar com o Google"** (opcional).
+- **"Entrar como visitante"**: cria na hora uma conta temporária e individual (sem e-mail e sem senha), que começa igual a uma conta nova e é apagada ao sair ou em até 24 horas. Tem limite por IP e um teto de visitantes ao mesmo tempo.
 - "Esqueci minha senha" com link de uso único, válido por 1 hora.
 - **Perfil do usuário**: apelido, foto (enviada pela pessoa ou importada do Google na criação da conta), alteração de senha e exclusão da conta, que apaga também os dados dela.
 - Bloqueio do login por 15 minutos após 5 senhas erradas.
@@ -75,6 +76,7 @@ Todas as rotas, exceto as de `/api/auth` e as páginas, exigem login.
 | `POST /api/auth/cadastro` | Cria a conta e envia o e-mail de confirmação |
 | `POST /api/auth/verificar-email` | Confirma o e-mail pelo link recebido |
 | `POST /api/auth/login` | Entra com e-mail e senha |
+| `POST /api/auth/visitante` | Cria uma conta temporária de visitante e já entra com ela |
 | `GET /api/auth/sessao` | Dados de quem está logado |
 | `POST /api/auth/esqueci-senha` / `redefinir-senha` | Recuperação de senha |
 | `GET/POST/PUT/DELETE /api/transacoes` | Receitas e despesas (filtros: período, categoria, tipo) |
@@ -127,6 +129,7 @@ O banco `financecontrol_auth` e as tabelas são criados automaticamente pelo Fly
 | `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` | Ativa o botão "Continuar com o Google" | Não |
 | `APP_BASE_URL` | Endereço público, usado nos links dos e-mails | Não |
 | `COOKIE_SECURE` | `true` em produção (HTTPS) | Não |
+| `VISITANTE_HABILITADO` | `false` esconde e desliga o "Entrar como visitante" (padrão: `true`) | Não |
 
 O passo a passo para configurar o Gmail e o login com Google está em [docs/LOGIN.md](docs/LOGIN.md). Para publicar na internet (Render + Neon + Resend), veja [docs/DEPLOY.md](docs/DEPLOY.md).
 
@@ -135,7 +138,7 @@ O passo a passo para configurar o Gmail e o login com Google está em [docs/LOGI
 Os testes unitários cobrem as regras de negócio e **não precisam de PostgreSQL nem de servidor de e-mail**:
 
 ```bash
-./mvnw test "-Dtest=UsuarioTest,TokenUsuarioTest,TokenServiceTest,AuthServiceTest,TransacaoServiceTest,DashboardServiceTest,ValidacaoDosFormulariosTest,ImagemDePerfilTest,PerfilServiceTest,FotoDoGoogleTest,EmailServiceTest"
+./mvnw test "-Dtest=UsuarioTest,TokenUsuarioTest,TokenServiceTest,AuthServiceTest,TransacaoServiceTest,DashboardServiceTest,ValidacaoDosFormulariosTest,ImagemDePerfilTest,PerfilServiceTest,FotoDoGoogleTest,EmailServiceTest,VisitanteServiceTest"
 ```
 
 | Área | O que é verificado |
@@ -149,6 +152,7 @@ Os testes unitários cobrem as regras de negócio e **não precisam de PostgreSQ
 | Dashboard | totais e saldo, saldo negativo, meses sem movimento, limite de 24 meses |
 | Perfil | apelido, troca de senha (e bloqueio ao errar a atual), exclusão de conta na ordem certa, foto do Google |
 | Foto | só imagem real, recorte quadrado 256x256, fundo branco em PNG transparente, limite de 2 MB, SVG e arquivos falsos recusados |
+| Visitante | conta temporária sem senha, uma conta por visitante, limite por IP, teto de visitantes, limpeza após 24 horas, sem e-mail de redefinição, exclusão confirmada com EXCLUIR |
 | E-mail | envio pela API do Resend (cabeçalho, remetente e JSON escapado), SMTP ignorado quando há chave do Resend |
 | Formulários | e-mail, senha, valor, casas decimais e tamanhos de campo |
 
