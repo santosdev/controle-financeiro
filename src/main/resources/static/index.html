@@ -19,7 +19,8 @@
         </div>
         <div class="topo__direita">
             <nav class="abas" role="tablist">
-                <button class="aba ativa" data-aba="movimentacoes" role="tab">Movimentações</button>
+                <button class="aba ativa" data-aba="dashboard" role="tab">Dashboard</button>
+                <button class="aba" data-aba="movimentacoes" role="tab">Movimentações</button>
                 <button class="aba" data-aba="categorias" role="tab">Categorias</button>
             </nav>
             <button id="botao-tema" class="botao-tema" type="button" aria-label="Ativar modo escuro" title="Modo escuro">
@@ -32,8 +33,92 @@
 
 <main class="pagina">
 
+    <!-- ========== DASHBOARD ========== -->
+    <section id="aba-dashboard" class="painel">
+
+        <form id="form-dashboard" class="filtros filtros--dash" onsubmit="return false">
+            <label>Período
+                <select id="dash-periodo">
+                    <option value="mes-atual">Este mês</option>
+                    <option value="mes-anterior">Mês anterior</option>
+                    <option value="3-meses">Últimos 3 meses</option>
+                    <option value="6-meses" selected>Últimos 6 meses</option>
+                    <option value="ano">Este ano</option>
+                    <option value="tudo">Todo o período</option>
+                    <option value="personalizado">Personalizado</option>
+                </select>
+            </label>
+            <label class="dash-personalizado" hidden>De
+                <input type="date" id="dash-inicio">
+            </label>
+            <label class="dash-personalizado" hidden>Até
+                <input type="date" id="dash-fim">
+            </label>
+        </form>
+
+        <div id="dash-conteudo">
+            <div class="kpis">
+                <div class="kpi kpi--destaque">
+                    <span class="kpi__titulo">Saldo do período</span>
+                    <strong class="kpi__heroi" id="dash-saldo">R$ 0,00</strong>
+                    <span class="kpi__nota" id="dash-saldo-nota"></span>
+                </div>
+                <div class="kpi">
+                    <span class="kpi__titulo"><i class="chave chave--receita"></i>Receitas</span>
+                    <strong class="kpi__valor" id="dash-receitas">R$ 0,00</strong>
+                </div>
+                <div class="kpi">
+                    <span class="kpi__titulo"><i class="chave chave--despesa"></i>Despesas</span>
+                    <strong class="kpi__valor" id="dash-despesas">R$ 0,00</strong>
+                </div>
+                <div class="kpi">
+                    <span class="kpi__titulo">Taxa de poupança</span>
+                    <strong class="kpi__valor" id="dash-poupanca">—</strong>
+                    <span class="kpi__nota" id="dash-poupanca-nota"></span>
+                </div>
+            </div>
+
+            <div class="grade-graficos">
+                <section class="cartao-grafico">
+                    <header class="cartao-grafico__topo">
+                        <div>
+                            <h3>Receitas e despesas por mês</h3>
+                            <p class="cartao-grafico__sub">Valores em reais (R$)</p>
+                        </div>
+                        <ul class="legenda">
+                            <li><i class="chave chave--receita"></i>Receitas</li>
+                            <li><i class="chave chave--despesa"></i>Despesas</li>
+                        </ul>
+                    </header>
+                    <div id="grafico-mensal"></div>
+                </section>
+
+                <section class="cartao-grafico">
+                    <header class="cartao-grafico__topo">
+                        <div>
+                            <h3 id="titulo-categorias">Despesas por categoria</h3>
+                            <p class="cartao-grafico__sub" id="sub-categorias"></p>
+                        </div>
+                        <div class="alternador" role="group" aria-label="Tipo de categoria">
+                            <button type="button" id="alt-despesa" class="alternador__botao ativo" aria-pressed="true">Despesas</button>
+                            <button type="button" id="alt-receita" class="alternador__botao" aria-pressed="false">Receitas</button>
+                        </div>
+                    </header>
+                    <div id="grafico-categorias"></div>
+                </section>
+            </div>
+
+            <details class="dados-tabela">
+                <summary>Ver dados em tabela</summary>
+                <div id="dash-tabelas"></div>
+            </details>
+        </div>
+
+        <div id="dica-grafico" class="dica-grafico" role="tooltip" hidden></div>
+    </section>
+
     <!-- ========== MOVIMENTAÇÕES ========== -->
-    <section id="aba-movimentacoes" class="painel">
+    <section id="aba-movimentacoes" class="painel" hidden>
 
         <div class="resumo">
             <div class="cartao cartao--receita">
@@ -196,6 +281,7 @@
 <div id="aviso" class="aviso" role="status" hidden></div>
 
 <script src="js/api.js"></script>
+<script src="js/dashboard.js"></script>
 <script src="js/app.js"></script>
 </body>
 </html>

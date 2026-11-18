@@ -68,8 +68,9 @@ function mostrarErroForm(idElemento, mensagem) {
 document.querySelectorAll(".aba").forEach((botao) => {
     botao.addEventListener("click", () => {
         document.querySelectorAll(".aba").forEach((b) => b.classList.toggle("ativa", b === botao));
-        $("aba-movimentacoes").hidden = botao.dataset.aba !== "movimentacoes";
-        $("aba-categorias").hidden = botao.dataset.aba !== "categorias";
+        document.querySelectorAll(".painel").forEach((p) => (p.hidden = p.id !== "aba-" + botao.dataset.aba));
+        // Os dados podem ter mudado nas outras abas, então o dashboard recarrega ao voltar.
+        if (botao.dataset.aba === "dashboard") Dashboard.carregar();
     });
 });
 
@@ -292,6 +293,7 @@ $("limpar-filtros").addEventListener("click", () => {
 
 (async function iniciar() {
     try {
+        Dashboard.iniciar();
         await carregarCategorias();
         await carregarTransacoes();
     } catch (e) {
