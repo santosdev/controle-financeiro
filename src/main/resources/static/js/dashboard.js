@@ -315,6 +315,7 @@ const Dashboard = (() => {
     }
 
     function iniciar() {
+        $("form-dashboard").addEventListener("submit", (e) => e.preventDefault());
         $("dash-periodo").addEventListener("change", () => {
             const personalizado = $("dash-periodo").value === "personalizado";
             document.querySelectorAll(".dash-personalizado").forEach((e) => (e.hidden = !personalizado));

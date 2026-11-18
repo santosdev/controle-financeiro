@@ -6,6 +6,7 @@ import com.santosdev.financecontrol.dto.MesTotal;
 import com.santosdev.financecontrol.exception.RegraDeNegocioException;
 import com.santosdev.financecontrol.model.TipoTransacao;
 import com.santosdev.financecontrol.repository.TransacaoRepository;
+import com.santosdev.financecontrol.security.UsuarioAtual;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,9 +24,11 @@ public class DashboardService {
     private static final int MAXIMO_MESES = 24;
 
     private final TransacaoRepository transacoes;
+    private final UsuarioAtual usuarioAtual;
 
-    public DashboardService(TransacaoRepository transacoes) {
+    public DashboardService(TransacaoRepository transacoes, UsuarioAtual usuarioAtual) {
         this.transacoes = transacoes;
+        this.usuarioAtual = usuarioAtual;
     }
 
     @Transactional(readOnly = true)
@@ -44,7 +47,7 @@ public class DashboardService {
     }
 
     private List<CategoriaTotal> porCategoria(TipoTransacao tipo, LocalDate inicio, LocalDate fim) {
-        return transacoes.totaisPorCategoria(tipo, inicio, fim).stream()
+        return transacoes.totaisPorCategoria(usuarioAtual.id(), tipo, inicio, fim).stream()
                 .map(l -> new CategoriaTotal((Long) l[0], (String) l[1], (BigDecimal) l[2]))
                 .toList();
     }
@@ -56,7 +59,7 @@ public class DashboardService {
     private List<MesTotal> evolucaoMensal(LocalDate inicio, LocalDate fim) {
         // [0] = receitas, [1] = despesas
         TreeMap<YearMonth, BigDecimal[]> porMes = new TreeMap<>();
-        for (Object[] l : transacoes.totaisPorMes(inicio, fim)) {
+        for (Object[] l : transacoes.totaisPorMes(usuarioAtual.id(), inicio, fim)) {
             YearMonth mes = YearMonth.of(((Number) l[0]).intValue(), ((Number) l[1]).intValue());
             BigDecimal[] valores = porMes.computeIfAbsent(mes, m -> new BigDecimal[]{BigDecimal.ZERO, BigDecimal.ZERO});
             int posicao = l[2] == TipoTransacao.RECEITA ? 0 : 1;

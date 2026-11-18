@@ -107,7 +107,13 @@ body {
 .assinatura b { color: var(--primaria-texto); }
 .assinatura:hover { color: var(--texto); }
 
-.topo__direita { display: flex; align-items: center; gap: 8px; }
+.topo__acoes { display: flex; align-items: center; gap: 12px; }
+.usuario { display: flex; align-items: center; gap: 10px; }
+.usuario__nome { font-size: .85rem; font-weight: 600; color: var(--texto-suave); max-width: 170px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.abas { margin-left: auto; }
+
+/* Enquanto confirma o login, nada do sistema aparece (evita mostrar a tela para quem não entrou). */
+body.autenticando .pagina, body.autenticando .abas, body.autenticando .usuario { visibility: hidden; }
 
 .botao-tema {
     width: 38px;
@@ -411,7 +417,10 @@ input:focus, select:focus { outline: 2px solid var(--primaria); outline-offset: 
     .kpi { padding: 14px 16px; }
     .kpi__heroi { font-size: 2.6rem; }
     .kpi__valor { font-size: 1.2rem; }
-    .topo__direita { width: 100%; justify-content: space-between; }
+    .marca { order: 1; }
+    .topo__acoes { order: 2; margin-left: auto; }
+    .abas { order: 3; width: 100%; margin-left: 0; }
+    .usuario__nome { display: none; }
     .aba { padding: 12px 10px 10px; font-size: .85rem; }
     .g-colunas { grid-template-columns: 44px 1fr; }
 }

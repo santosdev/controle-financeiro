@@ -2,15 +2,38 @@
 const API = (() => {
     const BASE = "/api";
 
+    // Erro da API: guarda o código curto (ex.: EMAIL_NAO_VERIFICADO) e o status HTTP.
+    class ErroApi extends Error {
+        constructor(mensagem, status, codigo) {
+            super(mensagem);
+            this.status = status;
+            this.codigo = codigo;
+        }
+    }
+
+    function lerCookie(nome) {
+        const achado = document.cookie.split("; ").find((c) => c.startsWith(nome + "="));
+        return achado ? decodeURIComponent(achado.substring(nome.length + 1)) : null;
+    }
+
     async function requisicao(caminho, opcoes = {}) {
+        const { redirecionarSeDeslogado, ...resto } = opcoes;
+        // Por padrão, um 401 leva ao login, exceto nas telas de conta (onde 401 = senha errada).
+        const redirecionar = redirecionarSeDeslogado ?? !caminho.startsWith("/auth/");
+        const metodo = (resto.method || "GET").toUpperCase();
+        const cabecalhos = { "Content-Type": "application/json", ...(resto.headers || {}) };
+
+        // Proteção CSRF: devolve o token do cookie no cabeçalho em toda requisição que altera dados.
+        if (metodo !== "GET" && metodo !== "HEAD") {
+            const token = lerCookie("XSRF-TOKEN");
+            if (token) cabecalhos["X-XSRF-TOKEN"] = token;
+        }
+
         let resposta;
         try {
-            resposta = await fetch(BASE + caminho, {
-                headers: { "Content-Type": "application/json" },
-                ...opcoes
-            });
+            resposta = await fetch(BASE + caminho, { ...resto, headers: cabecalhos, credentials: "same-origin" });
         } catch (e) {
-            throw new Error("Não foi possível conectar ao servidor. Ele está rodando?");
+            throw new ErroApi("Não foi possível conectar ao servidor. Ele está rodando?", 0, "SEM_CONEXAO");
         }
 
         if (resposta.status === 204) {
@@ -25,7 +48,11 @@ const API = (() => {
         }
 
         if (!resposta.ok) {
-            throw new Error(montarMensagemErro(corpo, resposta.status));
+            // Sessão expirada: volta para o login (as telas de login/cadastro tratam o 401 por conta própria).
+            if (resposta.status === 401 && redirecionar) {
+                window.location.href = "/login.html";
+            }
+            throw new ErroApi(montarMensagemErro(corpo, resposta.status), resposta.status, corpo && corpo.codigo);
         }
         return corpo;
     }
@@ -51,17 +78,40 @@ const API = (() => {
         return texto ? "?" + texto : "";
     }
 
+    const enviar = (metodo, caminho, dados, opcoes = {}) =>
+        requisicao(caminho, { method: metodo, body: JSON.stringify(dados), ...opcoes });
+
     return {
+        // ----- Conta e login -----
+        configuracao: () => requisicao("/auth/config", { redirecionarSeDeslogado: false }),
+        // Devolve o usuário logado. Sem login: leva para a tela de entrar (ou, com redirecionar=false, só lança o erro).
+        eu: async (redirecionar = true) => {
+            const sessao = await requisicao("/auth/sessao", { redirecionarSeDeslogado: false });
+            if (!sessao.autenticado) {
+                if (redirecionar) window.location.href = "/login.html";
+                throw new ErroApi("Você precisa entrar para continuar", 401, "NAO_AUTENTICADO");
+            }
+            return sessao.usuario;
+        },
+        cadastrar: (dados) => enviar("POST", "/auth/cadastro", dados),
+        verificarEmail: (token) => enviar("POST", "/auth/verificar-email", { token }),
+        reenviarConfirmacao: (email) => enviar("POST", "/auth/reenviar-confirmacao", { email }),
+        entrar: (dados) => enviar("POST", "/auth/login", dados),
+        sair: () => requisicao("/auth/logout", { method: "POST", redirecionarSeDeslogado: false }),
+        esqueciSenha: (email) => enviar("POST", "/auth/esqueci-senha", { email }),
+        redefinirSenha: (token, novaSenha) => enviar("POST", "/auth/redefinir-senha", { token, novaSenha }),
+
+        // ----- Dados financeiros -----
         listarCategorias: (tipo) => requisicao("/categorias" + paraQuery({ tipo })),
-        criarCategoria: (dados) => requisicao("/categorias", { method: "POST", body: JSON.stringify(dados) }),
-        atualizarCategoria: (id, dados) => requisicao("/categorias/" + id, { method: "PUT", body: JSON.stringify(dados) }),
+        criarCategoria: (dados) => enviar("POST", "/categorias", dados),
+        atualizarCategoria: (id, dados) => enviar("PUT", "/categorias/" + id, dados),
         excluirCategoria: (id) => requisicao("/categorias/" + id, { method: "DELETE" }),
 
         dashboard: (filtros) => requisicao("/dashboard" + paraQuery(filtros || {})),
 
         listarTransacoes: (filtros) => requisicao("/transacoes" + paraQuery(filtros || {})),
-        criarTransacao: (dados) => requisicao("/transacoes", { method: "POST", body: JSON.stringify(dados) }),
-        atualizarTransacao: (id, dados) => requisicao("/transacoes/" + id, { method: "PUT", body: JSON.stringify(dados) }),
+        criarTransacao: (dados) => enviar("POST", "/transacoes", dados),
+        atualizarTransacao: (id, dados) => enviar("PUT", "/transacoes/" + id, dados),
         excluirTransacao: (id) => requisicao("/transacoes/" + id, { method: "DELETE" })
     };
 })();
