@@ -57,6 +57,8 @@ const API = (() => {
         atualizarCategoria: (id, dados) => requisicao("/categorias/" + id, { method: "PUT", body: JSON.stringify(dados) }),
         excluirCategoria: (id) => requisicao("/categorias/" + id, { method: "DELETE" }),
 
+        dashboard: (filtros) => requisicao("/dashboard" + paraQuery(filtros || {})),
+
         listarTransacoes: (filtros) => requisicao("/transacoes" + paraQuery(filtros || {})),
         criarTransacao: (dados) => requisicao("/transacoes", { method: "POST", body: JSON.stringify(dados) }),
         atualizarTransacao: (id, dados) => requisicao("/transacoes/" + id, { method: "PUT", body: JSON.stringify(dados) }),
