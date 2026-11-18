@@ -67,6 +67,11 @@ public class Usuario {
         }
     }
 
+    /** Conta temporaria do "Entrar como visitante": e apagada ao sair ou depois de algumas horas. */
+    public boolean isVisitante() {
+        return provedor == ProvedorLogin.VISITANTE;
+    }
+
     public void zerarFalhasDeLogin() {
         tentativasFalhas = 0;
         bloqueadoAte = null;

@@ -143,6 +143,7 @@ public class AuthService {
     @Transactional
     public void solicitarRedefinicaoDeSenha(String emailInformado) {
         usuarios.findByEmail(normalizar(emailInformado))
+                .filter(u -> !u.isVisitante()) // visitante nao tem e-mail real nem senha
                 .filter(u -> !tokens.gerouRecentemente(u.getId(), TipoToken.REDEFINICAO_SENHA, INTERVALO_ENTRE_EMAILS))
                 .ifPresent(usuario -> {
                     String valor = tokens.criar(usuario, TipoToken.REDEFINICAO_SENHA, VALIDADE_REDEFINICAO);

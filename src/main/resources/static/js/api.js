@@ -97,6 +97,7 @@ const API = (() => {
         verificarEmail: (token) => enviar("POST", "/auth/verificar-email", { token }),
         reenviarConfirmacao: (email) => enviar("POST", "/auth/reenviar-confirmacao", { email }),
         entrar: (dados) => enviar("POST", "/auth/login", dados),
+        entrarComoVisitante: () => requisicao("/auth/visitante", { method: "POST", redirecionarSeDeslogado: false }),
         sair: () => requisicao("/auth/logout", { method: "POST", redirecionarSeDeslogado: false }),
         esqueciSenha: (email) => enviar("POST", "/auth/esqueci-senha", { email }),
         redefinirSenha: (token, novaSenha) => enviar("POST", "/auth/redefinir-senha", { token, novaSenha }),

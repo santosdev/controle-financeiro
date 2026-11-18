@@ -20,17 +20,20 @@ public class UsuarioLogado implements UserDetails {
     private final String nome;
     private final String email;
     private final String senhaHash;
+    private final boolean visitante;
 
     public UsuarioLogado(Usuario usuario) {
         this.id = usuario.getId();
         this.nome = usuario.getNome();
         this.email = usuario.getEmail();
         this.senhaHash = usuario.getSenhaHash();
+        this.visitante = usuario.isVisitante();
     }
 
     public Long getId() { return id; }
     public String getNome() { return nome; }
     public String getEmail() { return email; }
+    public boolean isVisitante() { return visitante; }
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
