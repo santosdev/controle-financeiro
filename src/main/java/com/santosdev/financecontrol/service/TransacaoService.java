@@ -9,6 +9,8 @@ import com.santosdev.financecontrol.model.TipoTransacao;
 import com.santosdev.financecontrol.model.Transacao;
 import com.santosdev.financecontrol.repository.CategoriaRepository;
 import com.santosdev.financecontrol.repository.TransacaoRepository;
+import com.santosdev.financecontrol.repository.UsuarioRepository;
+import com.santosdev.financecontrol.security.UsuarioAtual;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,10 +22,15 @@ public class TransacaoService {
 
     private final TransacaoRepository transacoes;
     private final CategoriaRepository categorias;
+    private final UsuarioRepository usuarios;
+    private final UsuarioAtual usuarioAtual;
 
-    public TransacaoService(TransacaoRepository transacoes, CategoriaRepository categorias) {
+    public TransacaoService(TransacaoRepository transacoes, CategoriaRepository categorias,
+                            UsuarioRepository usuarios, UsuarioAtual usuarioAtual) {
         this.transacoes = transacoes;
         this.categorias = categorias;
+        this.usuarios = usuarios;
+        this.usuarioAtual = usuarioAtual;
     }
 
     @Transactional(readOnly = true)
@@ -31,7 +38,7 @@ public class TransacaoService {
         if (inicio != null && fim != null && inicio.isAfter(fim)) {
             throw new RegraDeNegocioException("A data inicial não pode ser depois da data final");
         }
-        return transacoes.filtrar(inicio, fim, categoriaId, tipo).stream().map(TransacaoResponse::de).toList();
+        return transacoes.filtrar(usuarioAtual.id(), inicio, fim, categoriaId, tipo).stream().map(TransacaoResponse::de).toList();
     }
 
     @Transactional(readOnly = true)
@@ -42,6 +49,7 @@ public class TransacaoService {
     @Transactional
     public TransacaoResponse criar(TransacaoRequest req) {
         Transacao t = new Transacao();
+        t.setUsuario(usuarios.getReferenceById(usuarioAtual.id()));
         preencher(t, req);
         return TransacaoResponse.de(transacoes.save(t));
     }
@@ -59,7 +67,8 @@ public class TransacaoService {
     }
 
     private void preencher(Transacao t, TransacaoRequest req) {
-        Categoria categoria = categorias.findById(req.categoriaId())
+        // A categoria tambem precisa ser do usuario logado.
+        Categoria categoria = categorias.findByIdAndUsuarioId(req.categoriaId(), usuarioAtual.id())
                 .orElseThrow(() -> new RecursoNaoEncontradoException("Categoria " + req.categoriaId() + " não encontrada"));
         if (categoria.getTipo() != req.tipo()) {
             throw new RegraDeNegocioException("A categoria \"" + categoria.getNome() + "\" é de "
@@ -72,8 +81,9 @@ public class TransacaoService {
         t.setCategoria(categoria);
     }
 
+    // Movimentacao de outro usuario e tratada como inexistente (404).
     private Transacao obter(Long id) {
-        return transacoes.findById(id)
+        return transacoes.buscarDoUsuario(id, usuarioAtual.id())
                 .orElseThrow(() -> new RecursoNaoEncontradoException("Movimentação " + id + " não encontrada"));
     }
 }

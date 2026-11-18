@@ -1,5 +1,6 @@
 package com.santosdev.financecontrol.exception;
 
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -16,6 +17,21 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(RecursoNaoEncontradoException.class)
     public ResponseEntity<Map<String, Object>> naoEncontrado(RecursoNaoEncontradoException e) {
         return resposta(HttpStatus.NOT_FOUND, e.getMessage());
+    }
+
+    @ExceptionHandler(ApiException.class)
+    public ResponseEntity<Map<String, Object>> api(ApiException e) {
+        Map<String, Object> corpo = new LinkedHashMap<>();
+        corpo.put("status", e.getStatus().value());
+        corpo.put("codigo", e.getCodigo());
+        corpo.put("erro", e.getMessage());
+        return ResponseEntity.status(e.getStatus()).body(corpo);
+    }
+
+    // Duas requisicoes simultaneas criando o mesmo e-mail: o banco recusa a segunda.
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<Map<String, Object>> conflito(DataIntegrityViolationException e) {
+        return resposta(HttpStatus.CONFLICT, "Não foi possível concluir: o registro já existe ou está em uso");
     }
 
     @ExceptionHandler(RegraDeNegocioException.class)
