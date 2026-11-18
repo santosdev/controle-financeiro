@@ -108,12 +108,10 @@ body {
 .assinatura:hover { color: var(--texto); }
 
 .topo__acoes { display: flex; align-items: center; gap: 12px; }
-.usuario { display: flex; align-items: center; gap: 10px; }
-.usuario__nome { font-size: .85rem; font-weight: 600; color: var(--texto-suave); max-width: 170px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .abas { margin-left: auto; }
 
 /* Enquanto confirma o login, nada do sistema aparece (evita mostrar a tela para quem não entrou). */
-body.autenticando .pagina, body.autenticando .abas, body.autenticando .usuario { visibility: hidden; }
+body.autenticando .pagina, body.autenticando .abas, body.autenticando .perfil { visibility: hidden; }
 
 .botao-tema {
     width: 38px;
@@ -216,6 +214,101 @@ input, select {
     min-width: 0;
 }
 input:focus, select:focus { outline: 2px solid var(--primaria); outline-offset: -1px; border-color: var(--primaria); }
+
+/* ---------- Perfil: avatar e menu do topo ---------- */
+.avatar {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    flex: none;
+    overflow: hidden;
+    background: linear-gradient(135deg, var(--primaria), #14b8a6);
+    color: #fff;
+    font-weight: 700;
+    font-size: .95rem;
+    user-select: none;
+}
+.avatar img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.avatar--grande { width: 104px; height: 104px; font-size: 2.6rem; }
+
+.perfil { position: relative; }
+.perfil__botao {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 4px 10px 4px 4px;
+    border: 1px solid transparent;
+    border-radius: 999px;
+    background: none;
+    color: var(--texto);
+    font: inherit;
+    cursor: pointer;
+    transition: background .15s, border-color .15s;
+}
+.perfil__botao:hover, .perfil__botao[aria-expanded="true"] { background: var(--linha-hover); border-color: var(--borda); }
+.perfil__nome { font-size: .9rem; font-weight: 600; max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.perfil__seta { width: 16px; height: 16px; fill: none; stroke: var(--texto-suave); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.perfil__menu {
+    position: absolute;
+    right: 0;
+    top: calc(100% + 8px);
+    width: 250px;
+    background: var(--superficie);
+    border: 1px solid var(--borda);
+    border-radius: 12px;
+    padding: 8px;
+    box-shadow: 0 12px 32px rgba(0, 0, 0, .25);
+    z-index: 20;
+}
+.perfil__menu[hidden] { display: none; }
+.perfil__quem { display: flex; flex-direction: column; gap: 2px; padding: 8px 10px 10px; border-bottom: 1px solid var(--borda); margin-bottom: 6px; min-width: 0; }
+.perfil__quem strong, .perfil__quem small { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.perfil__quem small { color: var(--texto-suave); }
+.perfil__item {
+    display: block;
+    width: 100%;
+    text-align: left;
+    padding: 9px 10px;
+    border: none;
+    border-radius: 8px;
+    background: none;
+    color: var(--texto);
+    font: inherit;
+    cursor: pointer;
+}
+.perfil__item:hover, .perfil__item:focus-visible { background: var(--linha-hover); }
+.perfil__item--sair { color: var(--despesa); }
+
+/* ---------- Perfil: página "Meu perfil" ---------- */
+.painel--perfil { max-width: 720px; margin: 0 auto; }
+.perfil-cabecalho { display: flex; align-items: center; gap: 24px; flex-wrap: wrap; margin-bottom: 22px; }
+.perfil-cabecalho h2 { margin: 0 0 2px; }
+.perfil-sub { margin: 0 0 12px; color: var(--texto-suave); }
+.perfil-foto-botoes { display: flex; gap: 8px; flex-wrap: wrap; }
+.perfil-ajuda { margin: 8px 0 0; font-size: .8rem; color: var(--texto-suave); }
+.cartao-perfil {
+    background: var(--superficie);
+    border-radius: var(--raio);
+    box-shadow: var(--sombra);
+    padding: 22px 24px;
+    margin-bottom: 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+.cartao-perfil > .perfil-ajuda, #campos-senha > .perfil-ajuda { margin: 0; }
+.cartao-perfil h3 { margin: 0; font-size: 1.05rem; }
+.cartao-perfil label { display: flex; flex-direction: column; gap: 5px; font-size: .85rem; font-weight: 600; color: var(--texto-suave); }
+.cartao-perfil input { width: 100%; }
+.cartao-perfil input:disabled { opacity: .6; cursor: not-allowed; }
+.cartao-perfil__acoes { display: flex; justify-content: flex-end; }
+.cartao-perfil--perigo { border: 1px solid var(--despesa); }
+.cartao-perfil--perigo h3 { color: var(--despesa); }
+#campos-senha { display: flex; flex-direction: column; gap: 12px; }
+#campos-senha[hidden], #senha-google[hidden] { display: none; }
+.modal__texto { margin: 0; font-size: .92rem; }
 
 /* ---------- Botões ---------- */
 .botao {
@@ -420,7 +513,8 @@ input:focus, select:focus { outline: 2px solid var(--primaria); outline-offset: 
     .marca { order: 1; }
     .topo__acoes { order: 2; margin-left: auto; }
     .abas { order: 3; width: 100%; margin-left: 0; }
-    .usuario__nome { display: none; }
+    .perfil__nome, .perfil__seta { display: none; }
+    .perfil__botao { padding: 3px; }
     .aba { padding: 12px 10px 10px; font-size: .85rem; }
     .g-colunas { grid-template-columns: 44px 1fr; }
 }

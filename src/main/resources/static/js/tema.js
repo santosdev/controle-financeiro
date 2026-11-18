@@ -28,6 +28,9 @@
             const paraEscuro = tema === "claro";
             botao.setAttribute("aria-label", paraEscuro ? "Ativar modo escuro" : "Ativar modo claro");
             botao.setAttribute("title", paraEscuro ? "Modo escuro" : "Modo claro");
+            // No menu do perfil o botão tem um texto visível; nas telas de login ele só tem ícone.
+            const rotulo = document.getElementById("tema-rotulo");
+            if (rotulo) rotulo.textContent = paraEscuro ? "Modo escuro" : "Modo claro";
         }
     }
 

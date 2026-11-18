@@ -13,6 +13,7 @@ import com.santosdev.financecontrol.model.Usuario;
 import com.santosdev.financecontrol.security.SessaoUsuario;
 import com.santosdev.financecontrol.security.UsuarioLogado;
 import com.santosdev.financecontrol.service.AuthService;
+import com.santosdev.financecontrol.service.PerfilService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
@@ -33,13 +34,15 @@ import java.util.Map;
 public class AuthController {
 
     private final AuthService auth;
+    private final PerfilService perfil;
     private final AuthenticationManager gerenteDeAutenticacao;
     private final SessaoUsuario sessao;
     private final ObjectProvider<ClientRegistrationRepository> clientesOAuth;
 
-    public AuthController(AuthService auth, AuthenticationManager gerenteDeAutenticacao, SessaoUsuario sessao,
-                          ObjectProvider<ClientRegistrationRepository> clientesOAuth) {
+    public AuthController(AuthService auth, PerfilService perfil, AuthenticationManager gerenteDeAutenticacao,
+                          SessaoUsuario sessao, ObjectProvider<ClientRegistrationRepository> clientesOAuth) {
         this.auth = auth;
+        this.perfil = perfil;
         this.gerenteDeAutenticacao = gerenteDeAutenticacao;
         this.sessao = sessao;
         this.clientesOAuth = clientesOAuth;
@@ -87,12 +90,18 @@ public class AuthController {
 
         Usuario usuario = auth.concluirLogin(email); // exige e-mail confirmado
         sessao.iniciar(autenticacao, request, response);
-        return new UsuarioResponse(usuario.getId(), usuario.getNome(), usuario.getEmail());
+        return perfil.resposta(usuario);
     }
 
+    /** Os dados vem do banco (e nao da sessao), para o apelido e a foto novos aparecerem na hora. */
     @GetMapping("/sessao")
     public SessaoResponse sessao(@AuthenticationPrincipal UsuarioLogado usuario) {
-        return usuario == null ? SessaoResponse.anonima() : new SessaoResponse(true, UsuarioResponse.de(usuario));
+        if (usuario == null) {
+            return SessaoResponse.anonima();
+        }
+        return perfil.buscar(usuario.getId())
+                .map(dados -> new SessaoResponse(true, dados))
+                .orElseGet(SessaoResponse::anonima);
     }
 
     @PostMapping("/esqueci-senha")

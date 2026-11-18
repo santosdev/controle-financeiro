@@ -2,6 +2,7 @@ package com.santosdev.financecontrol.security;
 
 import com.santosdev.financecontrol.model.Usuario;
 import com.santosdev.financecontrol.service.AuthService;
+import com.santosdev.financecontrol.service.FotoDoGoogle;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -11,6 +12,7 @@ import org.springframework.security.web.authentication.AuthenticationSuccessHand
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
+import java.time.Instant;
 
 /**
  * Depois que o Google confirma quem e a pessoa, acha ou cria a conta no FinanceControl
@@ -21,10 +23,12 @@ public class GoogleLoginSuccessHandler implements AuthenticationSuccessHandler {
 
     private final AuthService authService;
     private final SessaoUsuario sessao;
+    private final FotoDoGoogle fotoDoGoogle;
 
-    public GoogleLoginSuccessHandler(AuthService authService, SessaoUsuario sessao) {
+    public GoogleLoginSuccessHandler(AuthService authService, SessaoUsuario sessao, FotoDoGoogle fotoDoGoogle) {
         this.authService = authService;
         this.sessao = sessao;
+        this.fotoDoGoogle = fotoDoGoogle;
     }
 
     @Override
@@ -38,6 +42,10 @@ public class GoogleLoginSuccessHandler implements AuthenticationSuccessHandler {
         }
 
         Usuario usuario = authService.entrarComGoogle(google.getEmail(), google.getFullName());
+        // Foto do Google so como ponto de partida de uma conta recem-criada (quem removeu a foto nao a ve voltar).
+        if (usuario.getCriadoEm().isAfter(Instant.now().minusSeconds(60))) {
+            fotoDoGoogle.importar(usuario.getId(), google.getPicture());
+        }
         UsuarioLogado logado = new UsuarioLogado(usuario);
         sessao.iniciar(UsernamePasswordAuthenticationToken.authenticated(logado, null, logado.getAuthorities()),
                 request, response);
