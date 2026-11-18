@@ -101,6 +101,18 @@ const API = (() => {
         esqueciSenha: (email) => enviar("POST", "/auth/esqueci-senha", { email }),
         redefinirSenha: (token, novaSenha) => enviar("POST", "/auth/redefinir-senha", { token, novaSenha }),
 
+        // ----- Perfil -----
+        atualizarPerfil: (dados) => enviar("PUT", "/perfil", dados),
+        alterarSenha: (dados) => enviar("PUT", "/perfil/senha", dados),
+        // A imagem vai como corpo da requisição (sem JSON). O servidor valida e padroniza.
+        enviarFoto: (arquivo) => requisicao("/perfil/foto", {
+            method: "PUT",
+            body: arquivo,
+            headers: { "Content-Type": arquivo.type || "application/octet-stream" }
+        }),
+        removerFoto: () => requisicao("/perfil/foto", { method: "DELETE" }),
+        excluirConta: (confirmacao) => enviar("POST", "/perfil/excluir-conta", { confirmacao }),
+
         // ----- Dados financeiros -----
         listarCategorias: (tipo) => requisicao("/categorias" + paraQuery({ tipo })),
         criarCategoria: (dados) => enviar("POST", "/categorias", dados),

@@ -3,6 +3,7 @@ package com.santosdev.financecontrol.repository;
 import com.santosdev.financecontrol.model.TipoTransacao;
 import com.santosdev.financecontrol.model.Transacao;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -14,6 +15,11 @@ import java.util.Optional;
 public interface TransacaoRepository extends JpaRepository<Transacao, Long> {
 
     boolean existsByCategoriaIdAndUsuarioId(Long categoriaId, Long usuarioId);
+
+    /** Usado ao excluir a conta. Precisa rodar antes de apagar as categorias, que as movimentacoes referenciam. */
+    @Modifying(flushAutomatically = true, clearAutomatically = true)
+    @Query("DELETE FROM Transacao t WHERE t.usuario.id = :usuarioId")
+    void apagarDoUsuario(@Param("usuarioId") Long usuarioId);
 
     @Query("SELECT t FROM Transacao t JOIN FETCH t.categoria WHERE t.id = :id AND t.usuario.id = :usuarioId")
     Optional<Transacao> buscarDoUsuario(@Param("id") Long id, @Param("usuarioId") Long usuarioId);

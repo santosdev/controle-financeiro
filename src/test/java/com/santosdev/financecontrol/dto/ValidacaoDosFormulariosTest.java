@@ -103,4 +103,40 @@ class ValidacaoDosFormulariosTest {
         assertThat(validador.validate(transacao("x".repeat(121), "10.00"))).isNotEmpty();
         assertThat(validador.validate(transacao("x".repeat(120), "10.00"))).isEmpty();
     }
+
+    /* ---------------- perfil ---------------- */
+
+    @Test
+    void perfilValidoPassa() {
+        assertThat(validador.validate(new PerfilRequest("Fábio Martins", "Fabão"))).isEmpty();
+        assertThat(validador.validate(new PerfilRequest("Fábio Martins", null))).isEmpty();
+    }
+
+    @Test
+    void perfilIgnoraEspacosNasPontas() {
+        PerfilRequest req = new PerfilRequest("  Fábio  ", "  Fabão  ");
+
+        assertThat(req.nome()).isEqualTo("Fábio");
+        assertThat(req.apelido()).isEqualTo("Fabão");
+    }
+
+    @Test
+    void perfilRecusaNomeVazio() {
+        assertThat(validador.validate(new PerfilRequest("   ", "Fabão"))).isNotEmpty();
+    }
+
+    @Test
+    void perfilRecusaApelidoComMaisDe40CaracteresOuComCaracterDeControle() {
+        assertThat(validador.validate(new PerfilRequest("Fábio", "a".repeat(41)))).isNotEmpty();
+        assertThat(validador.validate(new PerfilRequest("Fábio", "a".repeat(40)))).isEmpty();
+        assertThat(validador.validate(new PerfilRequest("Fábio", "Fa\nbão"))).isNotEmpty();
+    }
+
+    @Test
+    void alterarSenhaExigeNovaSenhaForte() {
+        assertThat(validador.validate(new AlterarSenhaRequest("atual", "Nova12345"))).isEmpty();
+        assertThat(validador.validate(new AlterarSenhaRequest("atual", "curta1"))).isNotEmpty();
+        assertThat(validador.validate(new AlterarSenhaRequest("atual", "somenteletras"))).isNotEmpty();
+        assertThat(validador.validate(new AlterarSenhaRequest("", "Nova12345"))).isNotEmpty();
+    }
 }

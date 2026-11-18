@@ -15,6 +15,10 @@ public class Usuario {
     @Column(nullable = false, length = 100)
     private String nome;
 
+    /** Como a pessoa quer ser chamada. Opcional: sem apelido, aparece o primeiro nome. */
+    @Column(length = 40)
+    private String apelido;
+
     /** Sempre guardado em minusculas e sem espacos nas pontas. */
     @Column(nullable = false, length = 160, unique = true)
     private String email;
@@ -68,9 +72,21 @@ public class Usuario {
         bloqueadoAte = null;
     }
 
+    /** Nome mostrado no topo do sistema: o apelido, ou o primeiro nome quando nao ha apelido. */
+    public String nomeDeExibicao() {
+        if (apelido != null && !apelido.isBlank()) {
+            return apelido;
+        }
+        String completo = nome == null ? "" : nome.trim();
+        int espaco = completo.indexOf(' ');
+        return espaco > 0 ? completo.substring(0, espaco) : completo;
+    }
+
     public Long getId() { return id; }
     public String getNome() { return nome; }
     public void setNome(String nome) { this.nome = nome; }
+    public String getApelido() { return apelido; }
+    public void setApelido(String apelido) { this.apelido = apelido; }
     public String getEmail() { return email; }
     public String getSenhaHash() { return senhaHash; }
     public void setSenhaHash(String senhaHash) { this.senhaHash = senhaHash; }

@@ -19,9 +19,11 @@ Aplicação completa de portfólio, do banco de dados à interface: API REST, au
 - Cadastro com **confirmação por e-mail**.
 - Login com e-mail e senha, ou **"Continuar com o Google"** (opcional).
 - "Esqueci minha senha" com link de uso único, válido por 1 hora.
+- **Perfil do usuário**: apelido, foto (enviada pela pessoa ou importada do Google na criação da conta), alteração de senha e exclusão da conta, que apaga também os dados dela.
 - Bloqueio do login por 15 minutos após 5 senhas erradas.
 - Senhas guardadas apenas como hash **BCrypt**; links de e-mail guardados apenas como hash.
 - Sessão por cookie `HttpOnly`, proteção **CSRF** e cabeçalhos de segurança (incluindo Content-Security-Policy).
+- Foto de perfil validada e reprocessada no servidor (só JPG, PNG ou GIF reais, no máximo 2 MB, sempre salva como JPEG 256x256).
 - **Cada usuário enxerga somente os próprios dados**: acessar o ID de outra pessoa retorna "não encontrado".
 
 ## 🛠️ Tecnologias
@@ -49,7 +51,7 @@ controle-financeiro/
 │   ├── main/
 │   │   ├── java/com/santosdev/financecontrol/
 │   │   │   ├── controller/           # endpoints REST
-│   │   │   ├── service/              # regras de negócio
+│   │   │   ├── service/              # regras de negócio (inclui o perfil)
 │   │   │   ├── repository/           # acesso ao banco
 │   │   │   ├── model/                # entidades JPA
 │   │   │   ├── dto/                  # objetos de entrada e saída
@@ -77,6 +79,10 @@ Todas as rotas, exceto as de `/api/auth` e as páginas, exigem login.
 | `POST /api/auth/esqueci-senha` / `redefinir-senha` | Recuperação de senha |
 | `GET/POST/PUT/DELETE /api/transacoes` | Receitas e despesas (filtros: período, categoria, tipo) |
 | `GET/POST/PUT/DELETE /api/categorias` | Categorias |
+| `GET/PUT /api/perfil` | Dados do perfil (nome e apelido) |
+| `GET/PUT/DELETE /api/perfil/foto` | Foto de perfil |
+| `PUT /api/perfil/senha` | Alterar senha (exige a senha atual) |
+| `POST /api/perfil/excluir-conta` | Exclui a conta e todos os dados dela |
 | `GET /api/dashboard` | Totais, saldo, evolução mensal e totais por categoria |
 
 ## 🚀 Como rodar
@@ -126,7 +132,7 @@ O passo a passo para configurar o Gmail e o login com Google está em [docs/LOGI
 Os testes unitários cobrem as regras de negócio e **não precisam de MySQL nem de servidor de e-mail**:
 
 ```bash
-./mvnw test "-Dtest=UsuarioTest,TokenUsuarioTest,TokenServiceTest,AuthServiceTest,TransacaoServiceTest,DashboardServiceTest,ValidacaoDosFormulariosTest"
+./mvnw test "-Dtest=UsuarioTest,TokenUsuarioTest,TokenServiceTest,AuthServiceTest,TransacaoServiceTest,DashboardServiceTest,ValidacaoDosFormulariosTest,ImagemDePerfilTest,PerfilServiceTest,FotoDoGoogleTest"
 ```
 
 | Área | O que é verificado |
@@ -138,6 +144,8 @@ Os testes unitários cobrem as regras de negócio e **não precisam de MySQL nem
 | Tokens | só o hash é guardado, valores diferentes a cada geração |
 | Movimentações | categoria de outro tipo ou de outro usuário, acesso a dados alheios, filtros |
 | Dashboard | totais e saldo, saldo negativo, meses sem movimento, limite de 24 meses |
+| Perfil | apelido, troca de senha (e bloqueio ao errar a atual), exclusão de conta na ordem certa, foto do Google |
+| Foto | só imagem real, recorte quadrado 256x256, fundo branco em PNG transparente, limite de 2 MB, SVG e arquivos falsos recusados |
 | Formulários | e-mail, senha, valor, casas decimais e tamanhos de campo |
 
 O teste `FinanceControlApplicationTests` sobe a aplicação inteira e, por isso, precisa do MySQL configurado (`DB_PASSWORD`).

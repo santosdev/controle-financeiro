@@ -303,8 +303,7 @@ $("botao-sair").addEventListener("click", async () => {
     // Só mostra o sistema para quem está logado; sem sessão, a API já leva para o login.
     try {
         const usuario = await API.eu();
-        $("usuario-nome").textContent = usuario.nome;
-        $("usuario-nome").title = usuario.email;
+        Perfil.iniciar(usuario);
         document.body.classList.remove("autenticando");
     } catch (e) {
         return;
